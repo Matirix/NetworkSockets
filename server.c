@@ -59,17 +59,11 @@ int main(int argc, char *argv[]) {
     // Setting addr parameters, IPC type and file location.
     memset(&addr, 0, sizeof(addr)); // Clears the memory by replacing all bytes to 0
     addr.sun_family = AF_UNIX; // Specifies that this will be used for IPC on same machine
-    strcpy(addr.sun_path, "/tmp/socket"); // Dictates where the socket will be in the file system
-
-    // Remove the socket file if it exists
-    if (access(S_PATH, F_OK) != -1) {
-        remove(S_PATH);
-    }
+    strcpy(addr.sun_path, S_PATH); // Dictates where the socket will be in the file system
 
     // Associates the server socket with the addrs created above
     if (bind(server_socket, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
         perror("Binding Error");
-        exit(EXIT_FAILURE);
         return -1;
     }
 
@@ -77,7 +71,7 @@ int main(int argc, char *argv[]) {
     printf("Listening...\n");
     if (listen(server_socket, BACKLOG) == -1) {
         perror("Listen Error");
-        exit(EXIT_FAILURE);
+        return -1;
     }
 
     printf("Server Socket is now accepting new connections\n");
@@ -86,7 +80,7 @@ int main(int argc, char *argv[]) {
     int c_socket = accept(server_socket, NULL, NULL);
     if (c_socket == -1) {
         perror("Accept Error");
-        // continue; // Keep the server running even if one connection fails
+        return -1;
     }
 
     // RECIEVE MESSAGE
@@ -101,16 +95,16 @@ int main(int argc, char *argv[]) {
 
     // SEND (RESPOND) WITH ENCRPYTED MESSAGE
     char* encrypytedMessage = caeser_cipher_encrypt(buffer, shift);
-    if (send(c_socket, buffer, strlen(encrypytedMessage), 0) == -1) {
+    if (send(c_socket, encrypytedMessage, strlen(encrypytedMessage), 0) == -1) {
         perror("Server Response Error");
-        exit(EXIT_FAILURE);
+        return -1;
     }
     // CLEAN UP
     close(c_socket);
     close(server_socket);
     if (unlink(S_PATH) == -1) {
         perror("Unlink Err");
-        exit(EXIT_FAILURE);
+        return -1;
     }
 
 

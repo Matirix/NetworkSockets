@@ -1,0 +1,41 @@
+digraph G {
+    A [label="SOCKET_INIT"]
+    B [label="SOCKET_BIND"]
+    C [label="SOCKET_LISTEN"]
+    D [label="SOCKET_ACCEPT"]
+    E [label="SOCKET_RECV"]
+    F [label="SOCKET_SEND"]
+    G [label="SOCKET_INIT"]
+    H [label="SOCKET_CONNECT"]
+    I [label="SOCKET_SEND"]
+    J [label="SOCKET_RECV"]
+    K [label="CLEAN_UP"]
+    L [label="EXIT"]
+    M [label="START"]
+    N [label="PARSE_ARGS"]
+    O [label="ENCRPYT"]
+
+
+    subgraph cluster_server {
+        label="Server"
+        A -> B -> C -> D -> E -> O -> F
+    }
+
+    subgraph cluster_client {
+        label="Client Side"
+        G -> H -> I -> J
+    }
+
+    H -> D [label="Accepts connection", style="dotted"]
+    I -> E [label="Sends content", style="dotted"]
+    F -> K
+    F -> J [label = "Encrypted message", style="dotted"]
+    K -> L [label="End process"]
+
+
+    // Start
+    M -> N-> {A, G}
+    J -> K
+
+
+}

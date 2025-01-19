@@ -9,12 +9,12 @@
 
 
 /**
-readFile - Reads the file and returns the contents
+read_file - Reads the file and returns the contents
 
 @param file_name The file name
 Returns the contents
 */
-char* readFile(char* file_name) {
+char* read_file(char* file_name) {
     FILE *file = fopen(file_name,"r");
     if (file == NULL) {
         perror("File Error");
@@ -44,15 +44,15 @@ main - Entry point for the server socket
 int main(int argc, char*argv[]) {
     if (argc != 2) {
         fprintf(stderr, "USE: %s <filename> \n", argv[0]);
-        return 1;
+        return -1;
     }
-    const char *msg = readFile(argv[1]);
+    const char *msg = read_file(argv[1]);
     struct sockaddr_un addr;
     // CREATE SOCKET UNIX DOMAIN SOCKET
     int client_socket = socket(AF_UNIX, SOCK_STREAM,0);
     if (client_socket == -1) {
         perror("Socket Creation Error: ");
-        return 1;
+        return -1;
     }
 
     // SET UP ADDRESS
@@ -64,7 +64,7 @@ int main(int argc, char*argv[]) {
     if (connect(client_socket,(struct sockaddr *) &addr, sizeof(addr)) == -1 ) {
         perror("Connection Error");
         close(client_socket);
-        exit(EXIT_FAILURE);
+        return -1;
     }
 
     printf("Connected to Server\n");
@@ -73,7 +73,7 @@ int main(int argc, char*argv[]) {
     if (send(client_socket, msg, strlen(msg),0) == -1) {
         perror("Sending Error");
         close(client_socket);
-        exit(EXIT_FAILURE);
+        return -1;
     }
 
     char buffer[128];
