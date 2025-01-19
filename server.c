@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/unistd.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/un.h>
@@ -61,11 +62,17 @@ int main(int argc, char *argv[]) {
     addr.sun_family = AF_UNIX; // Specifies that this will be used for IPC on same machine
     strcpy(addr.sun_path, S_PATH); // Dictates where the socket will be in the file system
 
+    // If socket already exists, unlink it first.
+    if (access(S_PATH,F_OK ) == 0) {
+            unlink(S_PATH);
+        }
+
     // Associates the server socket with the addrs created above
     if (bind(server_socket, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
         perror("Binding Error");
         return -1;
     }
+
 
     // LISTENING
     printf("Listening...\n");
@@ -90,15 +97,22 @@ int main(int argc, char *argv[]) {
     if (bytes > 0) {
         // null terminator to signify end of string
         buffer[bytes] = '\0';
+        if (bytes > 128) {
+            printf("Content size too large - Server will only return up to 128 bytes.");
+        }
         printf("Recieved: %s\n", buffer);
+
     }
 
+    printf("Encrypting...");
     // SEND (RESPOND) WITH ENCRPYTED MESSAGE
     char* encrypytedMessage = caeser_cipher_encrypt(buffer, shift);
     if (send(c_socket, encrypytedMessage, strlen(encrypytedMessage), 0) == -1) {
         perror("Server Response Error");
         return -1;
     }
+    printf("Sending back encrypted content: %s",buffer);
+
     // CLEAN UP
     close(c_socket);
     close(server_socket);

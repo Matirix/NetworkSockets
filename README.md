@@ -15,19 +15,5 @@ This client/server application demonstrates inter-process communication using UN
 
 ## Examples
 
-./server 1		      	// Shifts by 1;
-./client hello.txt		// name of the file
-
-
-
-./server -21			   // Shifts by -21;
-./client hello.txt		// name of the file
-
-
-
-./server 100	     		// Shifts by 100;
-./client hello.txt		// name of the file
-
-
-./server 1		      	// Shifts by 1;
-./client README.md		// Different File Type
+./server 1
+./client hello.txt

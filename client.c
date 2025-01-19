@@ -47,6 +47,11 @@ int main(int argc, char*argv[]) {
         return -1;
     }
     const char *msg = read_file(argv[1]);
+    if (strlen(msg) == 0) {
+        printf("File is empty!");
+        return -1;
+    }
+
     struct sockaddr_un addr;
     // CREATE SOCKET UNIX DOMAIN SOCKET
     int client_socket = socket(AF_UNIX, SOCK_STREAM,0);
@@ -67,7 +72,7 @@ int main(int argc, char*argv[]) {
         return -1;
     }
 
-    printf("Connected to Server\n");
+    printf("Connected to Server\n Sending message...");
 
 
     if (send(client_socket, msg, strlen(msg),0) == -1) {
@@ -75,13 +80,14 @@ int main(int argc, char*argv[]) {
         close(client_socket);
         return -1;
     }
+    printf("Connected to Server\n ");
 
     char buffer[128];
     ssize_t bytes = recv(client_socket, buffer, sizeof(buffer) - 1, 0);
     if (bytes > 0) {
         // null terminator to signify end of string
         buffer[bytes] = '\0';
-        printf("Recieved: %s\n", buffer);
+        printf("Recieved Encrypted Message: %s\n", buffer);
     }
 
     close(client_socket);
