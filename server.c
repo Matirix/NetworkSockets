@@ -44,9 +44,22 @@ main - Entry point for the server socket
 int main(int argc, char *argv[]) {
     if (argc != 2) {
         fprintf(stderr, "USE: %s <shift> \n", argv[0]);
-        return 1;
+        if (argc > 2) {
+            printf("Too many arguments");
+            return -1;
+        }
+        if (argv[1]) {
+            printf("Must be an integer");
+        }
+        return -1;
     }
-    int shift = atoi(argv[1]);
+    // Checking if input is valid.
+    char *inval_char;
+    int shift = strtol(argv[1], &inval_char,0);
+    if (*inval_char != '\0') {
+        printf("shift MUST be an integer");
+        return -1;
+    }
 
     // SET UP SOCKET
     struct sockaddr_un addr;
@@ -97,7 +110,7 @@ int main(int argc, char *argv[]) {
     if (bytes > 0) {
         // null terminator to signify end of string
         buffer[bytes] = '\0';
-        if (bytes > 128) {
+        if (bytes >= 128) {
             printf("Content size too large - Server will only return up to 128 bytes.");
         }
         printf("Recieved: %s\n", buffer);
