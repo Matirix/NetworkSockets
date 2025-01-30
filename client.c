@@ -1,5 +1,4 @@
 #include <ctype.h>
-#include <malloc/_malloc_type.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
