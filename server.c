@@ -1,3 +1,4 @@
+#include <_ctype.h>
 #include <stdlib.h>
 #include <string.h>
 #include <netinet/in.h>
@@ -19,12 +20,11 @@
 * vigenere cipher- Encrypts by incrementing according to shift
 *
 * This cipher takes into account negatives, numbers exceeding 26.
-* @buffer: The string to be encrypted
-* @key: String used to encrypt the buffer
-* Return: Encrpyted string.
+* @buffer   - The string to be encrypted
+* @key      - String used to encrypt the buffer
+* Return    - Encrpyted string.
 */
 char* vigenere_cipher(char buffer[], char key[]) {
-    printf("%s", buffer);
     int j = 0;
     for (int i = 0; i < strlen(buffer); i++) {
         if (isalpha(buffer[i])) {
@@ -62,9 +62,9 @@ int is_valid_input(char* msg) {
 /*
     Used for sending failure/success messages
 
-    @param c_socket - socket that recieves
-    @param msg - msg to be sent
-    @param msg_len - msg length
+    @param c_socket     - socket that recieves
+    @param msg          - msg to be sent
+    @param msg_len      - msg length
 */
 int send_message(int c_socket,char* msg, size_t msg_len){
     if (send(c_socket, msg, msg_len, 0) == -1) {
@@ -74,7 +74,32 @@ int send_message(int c_socket,char* msg, size_t msg_len){
     return 1;
 }
 
+/**
+Validates Address and Port Numberes
 
+@param addr         - IP address to be parsed
+@param is_port      - PORT Number to be parsed
+*/
+int is_valid_address_port(char* addr, int is_port) {
+    int dot_count = 0;
+    for (int i = 0; i < strlen(addr); i++) {
+        if (addr[i] == '.') {
+            dot_count++;
+        } else if (!isdigit(addr[i])) {
+            printf("Invalid digit");
+            return 0;
+        }
+    }
+    if (is_port) {
+        return 1;
+    } else if (dot_count != 3) {
+        printf("Not a valid Ip address");
+        return 1;
+    }
+
+
+    return 1;
+}
 
 
 /**
@@ -86,23 +111,27 @@ main - Entry point for the server socket
         i.e, arg2[2] is used to indicate a port number to bind the server
 */
 int main(int argc, char *argv[]) {
-    // if (argc != 2) {
-    //     fprintf(stderr, "USE: %s <shift> \n", argv[0]);
-    //     if (argc > 3) {
-    //         printf("Too many arguments");
-    //         return -1;
-    //     }
-    //     if (argc < 3) {
-    //         printf("Too few arguments");
-    //         return -1;
-    //     }
-    //     return -1;
-    // }
-    // // Checking if input is valid.
-    // if (isValidString(key) == 0) {
-    //     printf("Key is not valid");
-    //     return -1;
-    // }
+    char* ip_addr;
+    char* port;
+    if (argc > 3) {
+        fprintf(stderr, "USE: %s <addr> <port> \n", argv[0]);
+        if (argc > 2) {
+            printf("Too many arguments");
+            return -1;
+        }
+        if (argc < 2) {
+            printf("Too few arguments");
+            return -1;
+        }
+        return -1;
+    }
+    // Checking if input is valid.
+    if (is_valid_address_port(argv[1], 0)|| is_valid_address_port(argv[2], 1)) {
+        ip_addr = argv[1];
+        port = argv[2];
+
+
+    }
 
     // SET UP SOCKET NETWORK SOCKET = AF_INET
     struct sockaddr_in addr;
@@ -123,8 +152,8 @@ int main(int argc, char *argv[]) {
     // BINDING
     // Setting addr parameters, IPC type and file location.
     addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-    addr.sin_port = htons(PORT);
+    addr.sin_addr.s_addr = inet_addr(ip_addr);
+    addr.sin_port = htons(strtol(port, NULL, 10));
 
 
 
