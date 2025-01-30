@@ -1,5 +1,5 @@
 digraph G {
-    A [label="SOCKET_INIT"]
+    A [label="NETWORK_SOCKET_INIT"]
     B [label="SOCKET_BIND"]
     C [label="SOCKET_LISTEN"]
     D [label="SOCKET_ACCEPT"]
@@ -13,11 +13,11 @@ digraph G {
     L [label="EXIT"]
     M [label="START"]
     N [label="PARSE_ARGS"]
-    O [label="ENCRPYT"]
+    O [label="ENCRPYT VIGENERE"]
 
 
     subgraph cluster_server {
-        label="Server"
+        label="Server Side"
         A -> B -> C -> D -> E -> O -> F
     }
 
