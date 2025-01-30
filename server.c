@@ -1,33 +1,40 @@
 #include <stdlib.h>
 #include <string.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/unistd.h>
+#include <arpa/inet.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/un.h>
 #include <ctype.h>
 
 #define BACKLOG 5
-#define S_PATH "/tmp/socket"
+#define PORT 8080
 
+// TODO PORT, IP_ADDRESS
 
 
 /**
-* caeser_cipher_encrpyt - Encrypts by incrementing according to shift
+* vigenere cipher- Encrypts by incrementing according to shift
 *
-* This ceaser cipher takes into account negatives, numbers exceeding 26.
+* This cipher takes into account negatives, numbers exceeding 26.
 * @buffer: The string to be encrypted
-* @shift: Number of alphabetical shifts for each character
+* @key: String used to encrypt the buffer
 * Return: Encrpyted string.
 */
-char* caeser_cipher_encrypt(char buffer[], int shift) {
+char* vigenere_cipher(char buffer[], char key[]) {
+    printf("%s", buffer);
+    int j = 0;
     for (int i = 0; i < strlen(buffer); i++) {
         if (isalpha(buffer[i])) {
+            char shift = key[j] - 'a';
             if (islower(buffer[i])) {
                 buffer[i] = ((buffer[i] - 'a' + shift) % 26 + 26) % 26 + 'a';
             } else if (isupper(buffer[i])) {
                 buffer[i] = ((buffer[i] - 'A' + shift) % 26 + 26) % 26 + 'A';
             }
+            j = (j+1) % strlen(key); // Make sure it loops around
         }
         // Non-alphabetic characters remain unchanged
     }
@@ -35,50 +42,91 @@ char* caeser_cipher_encrypt(char buffer[], int shift) {
 }
 
 /**
+    Checks to see if the msg contains only 1 delimiter. If not, then bad.
+
+    @param msg - msg to check.
+*/
+int is_valid_input(char* msg) {
+    printf("%s\n From Valid input", msg);
+    int delims = 0;
+    for (int i=0; i<strlen(msg); i++ ) {
+        if (msg[i] == '&') {
+            delims++;
+        }
+        if (delims > 1) {
+            return 0;
+        }
+    }
+    return 1;
+}
+/*
+    Used for sending failure/success messages
+
+    @param c_socket - socket that recieves
+    @param msg - msg to be sent
+    @param msg_len - msg length
+*/
+int send_message(int c_socket,char* msg, size_t msg_len){
+    if (send(c_socket, msg, msg_len, 0) == -1) {
+        perror("Server Response Error");
+        return -1;
+    }
+    return 1;
+}
+
+
+
+
+/**
 main - Entry point for the server socket
 
 @ argc Number of command line arguments
 @ argv an Array of Strings that represent the command line arguments.
-        i.e, arg[1] is used as an indicator of how many letters to shift for encryption.
+        i.e, arg[1] is used to indicate the IP address
+        i.e, arg2[2] is used to indicate a port number to bind the server
 */
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        fprintf(stderr, "USE: %s <shift> \n", argv[0]);
-        if (argc > 2) {
-            printf("Too many arguments");
-            return -1;
-        }
-        if (argv[1]) {
-            printf("Must be an integer");
-        }
-        return -1;
-    }
-    // Checking if input is valid.
-    char *inval_char;
-    int shift = strtol(argv[1], &inval_char,0);
-    if (*inval_char != '\0') {
-        printf("shift MUST be an integer");
-        return -1;
-    }
+    // if (argc != 2) {
+    //     fprintf(stderr, "USE: %s <shift> \n", argv[0]);
+    //     if (argc > 3) {
+    //         printf("Too many arguments");
+    //         return -1;
+    //     }
+    //     if (argc < 3) {
+    //         printf("Too few arguments");
+    //         return -1;
+    //     }
+    //     return -1;
+    // }
+    // // Checking if input is valid.
+    // if (isValidString(key) == 0) {
+    //     printf("Key is not valid");
+    //     return -1;
+    // }
 
-    // SET UP SOCKET
-    struct sockaddr_un addr;
-    int server_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+    // SET UP SOCKET NETWORK SOCKET = AF_INET
+    struct sockaddr_in addr;
+    int server_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (server_socket == -1) {
         perror("Socket Creation Error:");
         return -1;
     }
 
+    // SET UP PORT
+    int opt = 1;
+    if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
+        perror("setsockopt");
+        return -1;
+    }
+
+
     // BINDING
     // Setting addr parameters, IPC type and file location.
-    memset(&addr, 0, sizeof(addr)); // Clears the memory by replacing all bytes to 0
-    addr.sun_family = AF_UNIX; // Specifies that this will be used for IPC on same machine
-    strcpy(addr.sun_path, S_PATH); // Dictates where the socket will be in the file system
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    addr.sin_port = htons(PORT);
 
-    // If socket already exists, unlink it first.
-    if (access(S_PATH,F_OK ) == 0) {
-            unlink(S_PATH);
-        }
+
 
     // Associates the server socket with the addrs created above
     if (bind(server_socket, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
@@ -111,16 +159,29 @@ int main(int argc, char *argv[]) {
         // null terminator to signify end of string
         buffer[bytes] = '\0';
         if (bytes >= 128) {
-            printf("Content size too large - Server will only return up to 128 bytes.");
+            char* msg = "Content size too large - Server will only return up to 128 bytes.";
+            printf("%s", msg);
+            send_message(c_socket, msg, strlen(msg));
         }
         printf("Recieved: %s\n", buffer);
 
     }
+    if (is_valid_input(buffer) == 0) {
+        char* msg = "Invalid input, there must ONLY be one '&' character";
+        printf("%s", msg);
+        send_message(c_socket, msg, strlen(msg));
+        close(server_socket);
+        exit(EXIT_FAILURE);
+    };
+
+    char *msg = strtok(buffer, "&");
+    char *key = strtok(NULL, "&");
 
     printf("Encrypting...");
     // SEND (RESPOND) WITH ENCRPYTED MESSAGE
-    char* encrypytedMessage = caeser_cipher_encrypt(buffer, shift);
-    if (send(c_socket, encrypytedMessage, strlen(encrypytedMessage), 0) == -1) {
+    char* encrypytedMessage = vigenere_cipher(msg, key);
+    if (send_message(c_socket, encrypytedMessage, strlen(encrypytedMessage)) == -1) {
+        close(server_socket);
         perror("Server Response Error");
         return -1;
     }
@@ -129,10 +190,6 @@ int main(int argc, char *argv[]) {
     // CLEAN UP
     close(c_socket);
     close(server_socket);
-    if (unlink(S_PATH) == -1) {
-        perror("Unlink Err");
-        return -1;
-    }
 
 
     return 0;
