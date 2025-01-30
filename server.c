@@ -96,8 +96,6 @@ int is_valid_address_port(char* addr, int is_port) {
         printf("Not a valid Ip address");
         return 1;
     }
-
-
     return 1;
 }
 
@@ -114,23 +112,20 @@ int main(int argc, char *argv[]) {
     char* ip_addr;
     char* port;
     if (argc > 3) {
+        printf("Too many arguments");
         fprintf(stderr, "USE: %s <addr> <port> \n", argv[0]);
-        if (argc > 2) {
-            printf("Too many arguments");
-            return -1;
-        }
-        if (argc < 2) {
-            printf("Too few arguments");
-            return -1;
-        }
         return -1;
     }
+    if (argc < 3) {
+        printf("Too few arguments");
+        fprintf(stderr, "USE: %s <addr> <port> \n", argv[0]);
+        return -1;
+    }
+
     // Checking if input is valid.
     if (is_valid_address_port(argv[1], 0)|| is_valid_address_port(argv[2], 1)) {
         ip_addr = argv[1];
         port = argv[2];
-
-
     }
 
     // SET UP SOCKET NETWORK SOCKET = AF_INET

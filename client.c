@@ -63,6 +63,31 @@ int isValidString(char* key ) {
     return 1;
 }
 
+/**
+Validates Address and Port Numberes
+
+@param addr         - IP address to be parsed
+@param is_port      - PORT Number to be parsed
+*/
+int is_valid_address_port(char* addr, int is_port) {
+    int dot_count = 0;
+    for (int i = 0; i < strlen(addr); i++) {
+        if (addr[i] == '.') {
+            dot_count++;
+        } else if (!isdigit(addr[i])) {
+            printf("Invalid digit");
+            return 0;
+        }
+    }
+    if (is_port) {
+        return 1;
+    } else if (dot_count != 3) {
+        printf("Not a valid Ip address");
+        return 1;
+    }
+    return 1;
+}
+
 
 /**
 Combines two the message and the key into one server-readable format.
@@ -97,16 +122,30 @@ main - Entry point for the server socket
         i.e, arg[1] is used for a file name.
 */
 int main(int argc, char*argv[]) {
-    if (argc < 3) {
-        fprintf(stderr, "USE: %s <filename> <key> \n", argv[0]);
+    if (argc < 5) {
+        printf("Too few arguments");
+        fprintf(stderr, "USE: %s <ip_addr> <port> <filename> <key> \n", argv[0]);
         return -1;
     }
-    char *msg = read_file(argv[1]);
-    char *key = argv[2];
+    if (argc > 5) {
+        printf("Too many arguments");
+        fprintf(stderr, "USE: %s <ip_addr> <port> <filename> <key> \n", argv[0]);
+        return -1;
+    }
+    char *ip_addr;
+    char *port;
+    char *msg = read_file(argv[3]);
+    char *key = argv[4];
     char *combined;
+    // Checking if input is valid.
+    if (is_valid_address_port(argv[1], 0)|| is_valid_address_port(argv[2], 1)) {
+        ip_addr = argv[1];
+        port = argv[2];
+    }
     if (isValidString(key) == 0) {
         return -1;
     }
+
     combined = concat_strings(msg, key);
 
 
