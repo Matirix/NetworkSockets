@@ -159,10 +159,10 @@ int main(int argc, char*argv[]) {
 
     // SET UP ADDRESS
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
+    serv_addr.sin_port = htons(strtol(port, NULL, 10)); // Port conversion (expecting 0 errors in conversion) in to base 10
 
     // Converts string representation to binary represenation and stores inside serv_addr
-    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)
+    if (inet_pton(AF_INET, ip_addr, &serv_addr.sin_addr)
         <= 0) {
         printf(
             "\nInvalid address/ Address not supported \n");
