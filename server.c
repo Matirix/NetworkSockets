@@ -94,7 +94,7 @@ int is_valid_address_port(char* addr, int is_port) {
         return 1;
     } else if (dot_count != 3) {
         printf("Not a valid Ip address");
-        return 1;
+        return 0;
     }
     return 1;
 }
@@ -123,7 +123,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Checking if input is valid.
-    if (is_valid_address_port(argv[1], 0)|| is_valid_address_port(argv[2], 1)) {
+    if (is_valid_address_port(argv[1], 0) && is_valid_address_port(argv[2], 1)) {
         ip_addr = argv[1];
         port = argv[2];
     }
@@ -216,5 +216,5 @@ int main(int argc, char *argv[]) {
     close(server_socket);
 
 
-    return 0;
+    return 1;
 }

@@ -53,7 +53,7 @@ char* read_file(char* file_name) {
 Checks for numbers in the key. If there are numbers this is an invalid key.
 @param key - char* used to verify if there are no numbers in the key.
 */
-int isValidString(char* key ) {
+int is_valid_string(char* key ) {
     for (int i=0; i < strlen(key); i++) {
         if (!isalpha(key[i])) {
             return 0;
@@ -141,7 +141,7 @@ int main(int argc, char*argv[]) {
         ip_addr = argv[1];
         port = argv[2];
     }
-    if (isValidString(key) == 0) {
+    if (is_valid_string(key) == 0) {
         return -1;
     }
 
